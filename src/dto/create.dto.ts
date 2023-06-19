@@ -1,5 +1,4 @@
 export class CreateDto {
-	name: string;
-	id: number;
-	email: string;
+	id: number
+	name: string
 }

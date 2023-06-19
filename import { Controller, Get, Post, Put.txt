@@ -1,0 +1,85 @@
+import { Controller, Get, Post, Body, UsePipes, Req, Res, ValidationPipe, Param, Put, Delete } from '@nestjs/common';
+import { AppService } from './app.service';
+import { CreateDto } from './dto/create.dto';
+import { NewDto } from './dto/newDto';
+import * as session from 'express-session';
+import { Request, Response } from 'express';
+
+
+let User = [];
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) { }
+
+  @Get('user')
+  getUsers() {
+    return User;
+  }
+
+
+  @Post('add')
+  createUser(@Body() newDto: NewDto): string {
+    if (newDto) {
+      User.push(newDto);
+    }
+    else {
+      return 'Invalid Inout';
+    }
+  }
+
+  @Get('find/:id')
+  findUser(@Param('id') id: number) {
+    let foundUsers = User.filter((user) => user.id == id);
+    if (foundUsers.length) {
+      return foundUsers;
+    } else {
+      return { message: 'User not found' };
+    }
+  }
+
+
+  @Delete('delete/:id')
+  deleteUser(@Param('id') id: number) {
+    const deletedUser = User.find((user) => user.id == id);
+    User = User.filter((User) => User.id != id);
+    if (deletedUser) {
+      return `User '${deletedUser.name}' with ID '${deletedUser.id}' and email '${deletedUser.email}' has been deleted`;
+    } else {
+      return { message: 'User not found' };
+    }
+  }
+
+
+  @Put('update/:id')
+  updateUser(@Param('id') id: number, @Body() updateDto: NewDto) {
+    const index = User.findIndex((user) => user.id == id);
+    if (index !== -1) {
+      User[index] = updateDto;
+      return 'User Updated';
+    } else {
+      return { message: 'User not found' };
+    }
+  }
+
+  @Post('valid')
+  @UsePipes(new ValidationPipe)
+  validUser(@Body() newDto: NewDto) {
+    console.log(newDto);
+    return 'user valid';
+  }
+  @Post('login')
+  login(@Req() req: Request & { session: any }) {
+    req.session.username = 'abd';
+    return req.session.username;
+  }
+  @Get('profile')
+  profile(@Req() req: Request & { session: any }) {
+    console.log(req.session.username);
+  }
+  @Post('logout')
+  logout(@Req() req: Request & { session: any }) {
+    req.session.destroy();
+    return 'The session is RIP';
+  }
+
+}
